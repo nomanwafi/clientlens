@@ -1,0 +1,74 @@
+[project]
+name = "clientlens"
+version = "0.2.0"
+description = "Unified client audit engine — security + digital marketing reconnaissance in one evidence-backed report. Free, local, deterministic."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Abdullah Al Noman" }]
+keywords = ["security", "audit", "seo", "recon", "marketing", "pentest", "report"]
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=13.7.0",
+    "httpx[http2]>=0.27.0",
+    "dnspython>=2.6.0",
+    "cryptography>=42.0.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.1.0",
+    "jinja2>=3.1.0",
+    "tldextract>=5.1.0",
+]
+
+[project.optional-dependencies]
+web = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "sqlalchemy>=2.0.0",
+    "aiosqlite>=0.19.0",
+]
+pdf = [
+    "xhtml2pdf>=0.2.16",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "respx>=0.21.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+clientlens = "clientlens.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/clientlens/clientlens"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv]
+package = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = [
+    "E501",    # line length handled by formatter preference
+    "B008",    # typer.Option/Argument in defaults is the required CLI pattern
+    "UP042",   # (str, Enum) is intentional — needed for JSON serialisation
+    "N818",    # domain exception names (AuthorizationRequired, InvalidTarget)
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "ruff>=0.16.10",
+]

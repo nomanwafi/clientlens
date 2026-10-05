@@ -1,0 +1,64 @@
+# ClientLens in CI — fail the build when a critical/high finding appears.
+#
+# Drop this into .github/workflows/clientlens.yml and set the repository
+# variable CLIENTLENS_TARGET to the domain you want checked on every push.
+#
+# This runs a *passive* scan only (1-5 requests) so it is safe to run against
+# production on every push.
+
+name: ClientLens
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, Monday 06:00 UTC
+  workflow_dispatch: {}
+
+env:
+  CLIENTLENS_DB: ${{ github.workspace }}/clientlens.db
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Install ClientLens
+        run: uv sync --extra pdf
+
+      - name: Run scan
+        id: scan
+        # Exit code 3 means critical/high findings — we still want the report.
+        run: |
+          set +e
+          uv run clientlens scan "${{ vars.CLIENTLENS_TARGET }}" \
+            --i-am-authorized \
+            --no-crtsh \
+            --rate 2 \
+            --max-requests 40 \
+            --html scan-report.html \
+            --pdf  scan-report.pdf \
+            -o     scan-report.json
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: clientlens-report
+          path: |
+            scan-report.html
+            scan-report.pdf
+            scan-report.json
+
+      - name: Fail on critical or high findings
+        if: steps.scan.outputs.exit_code == '3'
+        run: |
+          echo "::error::ClientLens found critical or high findings. See the clientlens-report artifact."
+          exit 1
