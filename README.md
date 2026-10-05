@@ -1,5 +1,12 @@
 # ClientLens
 
+![Python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-126%20passed-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
+![Cost](https://img.shields.io/badge/cost-free-00b894)
+![Probes](https://img.shields.io/badge/probes-33-orange)
+
 **Unified client audit engine** — security and digital-marketing reconnaissance
 in one evidence-backed report. Free, local, and deterministic.
 
@@ -11,11 +18,39 @@ clientlens scan example.com --i-am-authorized --html report.html --pdf report.pd
 
 ---
 
+## ৬০ সেকেন্ডে শুরু / Quick Start in 60 seconds
+
+**কী লাগবে:** Python 3.12+ এবং [uv](https://docs.astral.sh/uv/)
+
+```bash
+# ১) কোড ডাউনলোড
+git clone https://github.com/nomanwafi/clientlens.git
+cd clientlens
+
+# ২) ইনস্টল (একটাই কমান্ড)
+uv sync --all-extras
+
+# ৩) স্ক্যান চালাও (নিজের সাইটের নাম বসাও)
+uv run clientlens scan example.com --i-am-authorized
+
+# ৪) সুন্দর রিপোর্ট ফাইল বানাও
+uv run clientlens scan example.com --i-am-authorized \
+    --html report.html --pdf report.pdf
+```
+
+**হয়ে গেছে!** `report.html` ফাইলটা ব্রাউজারে খুলো — ক্লায়েন্টকে দেওয়ার মতো রিপোর্ট পাবে।
+
+> ⚠️ **গুরুত্বপূর্ণ:** `--i-am-authorized` ছাড়া স্ক্যান চলবে না। শুধু সেই সাইট স্ক্যান করো
+> যার মালিক তুমি বা যার অনুমতি তোমার কাছে লিখিত আছে।
+
+---
+
 ## Documentation
 
 | Document | What's in it |
 |---|---|
 | **[USAGE.md](USAGE.md)** | **Complete guide** — every command, every flag, all 33 probes, output formats, JSON schema, real-world recipes, troubleshooting |
+| **[CHANGELOG.md](CHANGELOG.md)** | সব আপডেটের তালিকা — কী কী নতুন যোগ হয়েছে |
 | [examples/](examples/) | Copy-paste scripts: batch scanning, action-list extraction, GitHub Actions CI |
 | This README | Overview, accuracy contract, architecture |
 
@@ -31,6 +66,28 @@ one answer: **what is wrong with my site and what should I do about it?**
 
 ClientLens does both in a single pass and produces a single client-ready
 report — with evidence attached to every claim.
+
+---
+
+## কী কী পাবে / What you get
+
+একটা স্ক্যানে তুমি পাবে **৫ রকম আউটপুট**:
+
+| আউটপুট | কমান্ড | কাজে লাগে |
+|---|---|---|
+| 🖥️ **Terminal report** | (স্বয়ংক্রিয়) | দ্রুত দেখার জন্য — executive summary + priority actions |
+| 🌐 **HTML report** | `--html report.html` | ক্লায়েন্টকে দেওয়ার জন্য — print-ready, সুন্দর ডিজাইন |
+| 📄 **PDF report** | `--pdf report.pdf` | সরাসরি PDF পাঠানোর জন্য |
+| 📊 **CSV export** | `--csv findings.csv` | Excel/Google Sheets-এ খুলে কাজ করার জন্য |
+| 🔧 **JSON data** | `-o report.json` | প্রোগ্রাম্যাটিক ব্যবহারের জন্য |
+
+### রিপোর্টে যা থাকে
+
+- ✅ **Executive summary** — এক নজরে সব সমস্যা
+- 🎯 **Priority actions** — "quick wins" (মিনিটে করা যায়) আর "planned work" (দিন লাগবে)
+- 🔍 **Evidence** — প্রতিটা সমস্যার প্রমাণ সহ
+- ⚠️ **Confidence level** — কোনটা confirmed, কোনটা শুধু অনুমান
+- 🚫 **What was NOT tested** — কী কী পরীক্ষা করা হয়নি তাও লেখা থাকে
 
 ---
 
@@ -367,6 +424,34 @@ and fixture-based probe behaviour.
 
 ---
 
+## FAQ / সাধারণ প্রশ্ন
+
+**প্র: এটা কি ফ্রি?**
+হ্যাঁ, ১০০% ফ্রি। কোনো API key, subscription বা টাকা লাগে না। সবকিছু তোমার নিজের কম্পিউটারে চলে।
+
+**প্র: কি আমি যেকোনো সাইট স্ক্যান করতে পারবো?**
+না। শুধু সেই সাইট যার মালিক তুমি বা যার অনুমতি তোমার কাছে আছে। `--i-am-authorized` ফ্ল্যাগ ছাড়া স্ক্যান চলে না — এটা ইচ্ছাকৃত।
+
+**প্র: রিপোর্টের তথ্য কতটা নির্ভরযোগ্য?**
+প্রতিটা সমস্যার পাশে confidence level থাকে:
+- **Confirmed** = সরাসরি প্রমাণ সহ দেখা গেছে
+- **Likely** = অনুমান-ভিত্তিক, যাচাই করে নাও
+- **Needs review** = মানুষের দেখা দরকার
+
+**প্র: কি এটা হ্যাকার টুল?**
+না। এটা defensive audit tool — সমস্যা খুঁজে বের করে ঠিক করার জন্য। কোনো exploit বা attack করে না।
+
+**প্র: স্ক্যান করতে কত সময় লাগে?**
+সাধারণত ১০-৩০ সেকেন্ড। `--preset quick` দিলে আরো দ্রুত।
+
+**প্র: পুরনো স্ক্যানের সাথে তুলনা করা যায়?**
+হ্যাঁ! `clientlens history` দিয়ে পুরনো স্ক্যান দেখো, `clientlens diff <before> <after>` দিয়ে তুলনা করো।
+
+**প্র: সমস্যা পেলে কী করবো?**
+[GitHub-এ issue দাও](https://github.com/nomanwafi/clientlens/issues)।
+
+---
+
 ## Limitations
 
 ClientLens is honest about what it is not:
@@ -386,6 +471,11 @@ ClientLens is honest about what it is not:
 
 ---
 
-## Licence
+## Licence & Author
 
 MIT — see [LICENSE](LICENSE).
+
+**Built by ABDULLAH AL NOMAN**
+
+> ClientLens reports observations with evidence. It does not replace a
+> penetration test and does not certify any system as secure.
