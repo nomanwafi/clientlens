@@ -107,7 +107,9 @@ async def check_subdomains(ctx: ProbeContext) -> list[Finding]:
             kind=FindingKind.OBSERVATION,
             severity=Severity.INFO,
             confidence=Confidence.CONFIRMED,
-            evidence=Evidence.urls(others[:60], summary=f"{len(others)} names", source=f"crt.sh q={apex}"),
+            evidence=Evidence.urls(
+                others[:60], summary=f"{len(others)} names", source=f"crt.sh q={apex}"
+            ),
             reasoning=(
                 "Every name here appeared in an issued certificate for the apex "
                 "domain. Each one is an additional public entry point that needs "
@@ -125,9 +127,29 @@ async def check_subdomains(ctx: ProbeContext) -> list[Finding]:
     )
 
     # Highlight hosts that look like staging/dev/admin surfaces.
-    risky_tokens = ("staging", "stage", "dev", "test", "qa", "uat", "admin", "internal",
-                    "vpn", "remote", "mail", "webmail", "cpanel", "direct", "portal",
-                    "jenkins", "gitlab", "grafana", "kibana", "elastic", "phpmyadmin")
+    risky_tokens = (
+        "staging",
+        "stage",
+        "dev",
+        "test",
+        "qa",
+        "uat",
+        "admin",
+        "internal",
+        "vpn",
+        "remote",
+        "mail",
+        "webmail",
+        "cpanel",
+        "direct",
+        "portal",
+        "jenkins",
+        "gitlab",
+        "grafana",
+        "kibana",
+        "elastic",
+        "phpmyadmin",
+    )
     risky = [n for n in others if any(tok in n.lower() for tok in risky_tokens)]
 
     if risky:
@@ -183,7 +205,9 @@ async def _query_crtsh(apex: str) -> tuple[set[str], str]:
     params = {"q": f"%.{apex}", "output": "json"}
     try:
         async with httpx.AsyncClient(timeout=CRTSH_TIMEOUT) as client:
-            resp = await client.get(CRTSH_URL, params=params, headers={"User-Agent": "ClientLens/0.1"})
+            resp = await client.get(
+                CRTSH_URL, params=params, headers={"User-Agent": "ClientLens/0.1"}
+            )
             if resp.status_code != 200:
                 return set(), f"crt.sh returned HTTP {resp.status_code}"
             if not resp.text.strip():

@@ -182,8 +182,16 @@ class Storage:
                 )
 
         return {
-            "before": {"scan_id": before.id, "started_at": str(before.started_at), "risk": before.risk_score},
-            "after": {"scan_id": after.id, "started_at": str(after.started_at), "risk": after.risk_score},
+            "before": {
+                "scan_id": before.id,
+                "started_at": str(before.started_at),
+                "risk": before.risk_score,
+            },
+            "after": {
+                "scan_id": after.id,
+                "started_at": str(after.started_at),
+                "risk": after.risk_score,
+            },
             "risk_delta": (after.risk_score or 0) - (before.risk_score or 0),
             "added": added,
             "removed": removed,

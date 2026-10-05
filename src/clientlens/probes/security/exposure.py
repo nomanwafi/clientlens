@@ -21,37 +21,85 @@ from ...core.registry import ProbeContext, ProbeMode, ProbePhase, register_probe
 
 # Deliberately small and specific. This is reconnaissance, not brute force.
 SENSITIVE_PATHS: list[tuple[str, str, Severity, str]] = [
-    ("/.git/HEAD", "Git repository metadata exposed", Severity.CRITICAL,
-     "An exposed .git directory lets an attacker reconstruct the full source "
-     "history, including secrets that were ever committed and later removed."),
-    ("/.git/config", "Git config exposed", Severity.CRITICAL,
-     "The git config can reveal remote URLs including embedded credentials."),
-    ("/.env", "Environment file exposed", Severity.CRITICAL,
-     ".env files routinely contain database passwords, API keys and cloud "
-     "credentials in plaintext."),
-    ("/.svn/entries", "Subversion metadata exposed", Severity.HIGH,
-     "Source control metadata lets an attacker reconstruct the working copy."),
-    ("/.DS_Store", "macOS .DS_Store exposed", Severity.LOW,
-     "Directory listings leak filenames and folder structure, which speeds up "
-     "targeted enumeration."),
-    ("/backup.zip", "Backup archive reachable", Severity.CRITICAL,
-     "A downloadable backup is a complete data exfiltration opportunity and "
-     "commonly includes database dumps."),
-    ("/dump.sql", "SQL dump reachable", Severity.CRITICAL,
-     "A database dump is a direct data breach."),
-    ("/wp-config.php.bak", "WordPress config backup reachable", Severity.CRITICAL,
-     "wp-config.php contains database credentials; a .bak copy serves them as plain text."),
-    ("/phpinfo.php", "phpinfo() page exposed", Severity.MEDIUM,
-     "phpinfo() discloses absolute paths, module versions and environment "
-     "variables — a complete fingerprint for an attacker."),
-    ("/server-status", "Apache server-status exposed", Severity.MEDIUM,
-     "server-status leaks request URIs, client IPs and backend worker state."),
-    ("/actuator/health", "Spring Boot actuator endpoint exposed", Severity.MEDIUM,
-     "Actuator endpoints expose application internals and can lead to RCE on "
-     "some configurations."),
-    ("/elmah.axd", "ASP.NET error log exposed", Severity.HIGH,
-     "ELMAH exposes full exception details including stack traces and "
-     "sometimes connection strings."),
+    (
+        "/.git/HEAD",
+        "Git repository metadata exposed",
+        Severity.CRITICAL,
+        "An exposed .git directory lets an attacker reconstruct the full source "
+        "history, including secrets that were ever committed and later removed.",
+    ),
+    (
+        "/.git/config",
+        "Git config exposed",
+        Severity.CRITICAL,
+        "The git config can reveal remote URLs including embedded credentials.",
+    ),
+    (
+        "/.env",
+        "Environment file exposed",
+        Severity.CRITICAL,
+        ".env files routinely contain database passwords, API keys and cloud "
+        "credentials in plaintext.",
+    ),
+    (
+        "/.svn/entries",
+        "Subversion metadata exposed",
+        Severity.HIGH,
+        "Source control metadata lets an attacker reconstruct the working copy.",
+    ),
+    (
+        "/.DS_Store",
+        "macOS .DS_Store exposed",
+        Severity.LOW,
+        "Directory listings leak filenames and folder structure, which speeds up "
+        "targeted enumeration.",
+    ),
+    (
+        "/backup.zip",
+        "Backup archive reachable",
+        Severity.CRITICAL,
+        "A downloadable backup is a complete data exfiltration opportunity and "
+        "commonly includes database dumps.",
+    ),
+    (
+        "/dump.sql",
+        "SQL dump reachable",
+        Severity.CRITICAL,
+        "A database dump is a direct data breach.",
+    ),
+    (
+        "/wp-config.php.bak",
+        "WordPress config backup reachable",
+        Severity.CRITICAL,
+        "wp-config.php contains database credentials; a .bak copy serves them as plain text.",
+    ),
+    (
+        "/phpinfo.php",
+        "phpinfo() page exposed",
+        Severity.MEDIUM,
+        "phpinfo() discloses absolute paths, module versions and environment "
+        "variables — a complete fingerprint for an attacker.",
+    ),
+    (
+        "/server-status",
+        "Apache server-status exposed",
+        Severity.MEDIUM,
+        "server-status leaks request URIs, client IPs and backend worker state.",
+    ),
+    (
+        "/actuator/health",
+        "Spring Boot actuator endpoint exposed",
+        Severity.MEDIUM,
+        "Actuator endpoints expose application internals and can lead to RCE on "
+        "some configurations.",
+    ),
+    (
+        "/elmah.axd",
+        "ASP.NET error log exposed",
+        Severity.HIGH,
+        "ELMAH exposes full exception details including stack traces and "
+        "sometimes connection strings.",
+    ),
 ]
 
 # Paths that are useful to know about but are not inherently a problem.
@@ -191,7 +239,9 @@ async def check_disclosure_files(ctx: ProbeContext) -> list[Finding]:
                     kind=FindingKind.OBSERVATION,
                     severity=Severity.INFO,
                     confidence=Confidence.CONFIRMED,
-                    evidence=Evidence.http_response(resp.status, resp.headers, resp.snippet(300), source=url),
+                    evidence=Evidence.http_response(
+                        resp.status, resp.headers, resp.snippet(300), source=url
+                    ),
                     reasoning=why,
                     scope=f"GET {url}",
                     tags=["disclosure"],
@@ -218,7 +268,9 @@ def _parse_security_txt(resp, url: str, label: str) -> list[Finding]:
             kind=FindingKind.STRENGTH,
             severity=Severity.INFO,
             confidence=Confidence.CONFIRMED,
-            evidence=Evidence.http_response(resp.status, resp.headers, resp.snippet(500), source=url),
+            evidence=Evidence.http_response(
+                resp.status, resp.headers, resp.snippet(500), source=url
+            ),
             reasoning=(
                 "A security.txt gives researchers a sanctioned way to report "
                 "issues instead of going public or going dark. It is a positive "
@@ -286,7 +338,9 @@ def _parse_robots(resp, url: str) -> list[Finding]:
             kind=FindingKind.OBSERVATION,
             severity=Severity.INFO,
             confidence=Confidence.CONFIRMED,
-            evidence=Evidence.http_response(resp.status, resp.headers, resp.snippet(600), source=url),
+            evidence=Evidence.http_response(
+                resp.status, resp.headers, resp.snippet(600), source=url
+            ),
             reasoning=(
                 f"{len(disallows)} Disallow path(s) declared. robots.txt is a "
                 "request, not an access control — but the paths it names are a "

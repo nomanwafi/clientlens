@@ -72,9 +72,7 @@ class RateLimiter:
     async def acquire(self) -> None:
         async with self._lock:
             if self._used >= self._max_requests:
-                raise RateLimitExceeded(
-                    f"request budget exhausted ({self._max_requests} requests)"
-                )
+                raise RateLimitExceeded(f"request budget exhausted ({self._max_requests} requests)")
             now = time.monotonic()
             wait = self._interval - (now - self._last)
             if wait > 0:

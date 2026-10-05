@@ -21,9 +21,9 @@ def _find_data_dir() -> Path:
     """
     here = Path(__file__).resolve()
     candidates = [
-        here.parents[2] / "data" / "fingerprints",        # src/clientlens/data/...
-        here.parents[3] / "data" / "fingerprints",        # project root /data/...
-        here.parents[1] / "data" / "fingerprints",        # clientlens/data/...
+        here.parents[2] / "data" / "fingerprints",  # src/clientlens/data/...
+        here.parents[3] / "data" / "fingerprints",  # project root /data/...
+        here.parents[1] / "data" / "fingerprints",  # clientlens/data/...
     ]
     for candidate in candidates:
         if candidate.is_dir() and (candidate / "tracking.json").exists():
@@ -184,7 +184,9 @@ def match_trackers(
     return hits
 
 
-def match_consent_platform(*, html_blob: str, script_srcs: list[str], cookie_names: list[str]) -> list[ConsentPlatform]:
+def match_consent_platform(
+    *, html_blob: str, script_srcs: list[str], cookie_names: list[str]
+) -> list[ConsentPlatform]:
     db = load()
     blob = (html_blob + "\n" + "\n".join(script_srcs) + "\n" + "\n".join(cookie_names)).lower()
     hits: list[ConsentPlatform] = []

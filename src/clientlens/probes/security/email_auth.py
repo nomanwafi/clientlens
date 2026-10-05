@@ -76,7 +76,7 @@ async def check_email_auth(ctx: ProbeContext) -> list[Finding]:
                 scope=f"TXT records on {apex}",
                 remediation=(
                     f"Publish an SPF record listing exactly the hosts that send mail, e.g.\n"
-                    f"  {apex}.  IN  TXT  \"v=spf1 include:_spf.google.com -all\""
+                    f'  {apex}.  IN  TXT  "v=spf1 include:_spf.google.com -all"'
                 ),
                 tags=["email", "spf", "anti-spoofing"],
             )
@@ -163,7 +163,7 @@ async def check_email_auth(ctx: ProbeContext) -> list[Finding]:
                 scope=f"TXT records on _dmarc.{apex}",
                 remediation=(
                     f"Start with monitoring, then enforce:\n"
-                    f"  _dmarc.{apex}.  IN  TXT  \"v=DMARC1; p=none; rua=mailto:dmarc@{apex}\"\n"
+                    f'  _dmarc.{apex}.  IN  TXT  "v=DMARC1; p=none; rua=mailto:dmarc@{apex}"\n'
                     f"then move to p=quarantine and p=reject."
                 ),
                 tags=["email", "dmarc", "anti-spoofing", "brand-protection"],

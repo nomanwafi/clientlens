@@ -71,7 +71,9 @@ class TestHttpCaptureClient:
             return_value=httpx.Response(302, headers={"location": "https://example.com/final"})
         )
         respx.get("https://example.com/final").mock(
-            return_value=httpx.Response(200, text="<html>ok</html>", headers={"content-type": "text/html"})
+            return_value=httpx.Response(
+                200, text="<html>ok</html>", headers={"content-type": "text/html"}
+            )
         )
 
         config = ScanConfig(authorized=True)
@@ -363,8 +365,8 @@ class TestReportRenderers:
         assert "Missing header" in html
         assert "Needs manual review" in html
         assert "What this scan did" in html
-        assert "class=\"conf confirmed\"" in html
-        assert "class=\"conf needs_review\"" in html
+        assert 'class="conf confirmed"' in html
+        assert 'class="conf needs_review"' in html
 
     def test_json_export(self):
         from clientlens.report.json_export import to_dict

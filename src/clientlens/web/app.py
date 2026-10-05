@@ -224,15 +224,15 @@ def _dashboard_html(cards: list[dict], domains: list[str], active: str | None) -
         risk_color = "#c81e1e" if c["risk"] >= 60 else "#b45309" if c["risk"] >= 30 else "#15803d"
         rows_html += f"""
         <tr>
-          <td><a href="/scans/{c['id']}"><strong>{c['domain']}</strong></a>
-              <div class="tiny">{c['id']}</div></td>
-          <td>{c['started']}</td>
-          <td><span class="pill" style="background:{risk_color}">{c['risk']}</span></td>
-          <td>{c['findings']}</td>
-          <td>{c['critical']} / {c['high']}</td>
-          <td>{c['confirmed']}</td>
-          <td>{c['needs_review']}</td>
-          <td><span class="mode">{c['mode']}</span></td>
+          <td><a href="/scans/{c["id"]}"><strong>{c["domain"]}</strong></a>
+              <div class="tiny">{c["id"]}</div></td>
+          <td>{c["started"]}</td>
+          <td><span class="pill" style="background:{risk_color}">{c["risk"]}</span></td>
+          <td>{c["findings"]}</td>
+          <td>{c["critical"]} / {c["high"]}</td>
+          <td>{c["confirmed"]}</td>
+          <td>{c["needs_review"]}</td>
+          <td><span class="mode">{c["mode"]}</span></td>
         </tr>"""
 
     filter_html = '<a class="chip {"on" if not active else ""}" href="/">all</a>'
@@ -280,7 +280,7 @@ def _dashboard_html(cards: list[dict], domains: list[str], active: str | None) -
 <p class="sub">Saved scans on this machine. Scanning is not available from the web UI —
 use the CLI, which requires an explicit authorisation acknowledgement.</p>
 <div class="chips">{filter_html}</div>
-{'<table><tr><th>Target</th><th>Scanned</th><th>Risk</th><th>Findings</th><th>Crit/High</th><th>Confirmed</th><th>Needs review</th><th>Mode</th></tr>' + rows_html + '</table>' if cards else '<div class="empty">No scans yet.<br><br>Run one with<br><code>clientlens scan example.com --i-am-authorized -o scan.json</code></div>'}
+{"<table><tr><th>Target</th><th>Scanned</th><th>Risk</th><th>Findings</th><th>Crit/High</th><th>Confirmed</th><th>Needs review</th><th>Mode</th></tr>" + rows_html + "</table>" if cards else '<div class="empty">No scans yet.<br><br>Run one with<br><code>clientlens scan example.com --i-am-authorized -o scan.json</code></div>'}
 </div></body></html>"""
 
 
@@ -292,15 +292,21 @@ def _diff_html(diff: dict) -> str:
 
     added = rows(
         diff["added"],
-        lambda f: f'<tr><td>{f["severity"]}</td><td>{f["title"]}</td><td class="tiny">{f["id"]}</td></tr>',
+        lambda f: (
+            f'<tr><td>{f["severity"]}</td><td>{f["title"]}</td><td class="tiny">{f["id"]}</td></tr>'
+        ),
     )
     removed = rows(
         diff["removed"],
-        lambda f: f'<tr><td>{f["severity"]}</td><td>{f["title"]}</td><td class="tiny">{f["id"]}</td></tr>',
+        lambda f: (
+            f'<tr><td>{f["severity"]}</td><td>{f["title"]}</td><td class="tiny">{f["id"]}</td></tr>'
+        ),
     )
     changed = rows(
         diff["changed"],
-        lambda f: f'<tr><td>{f["before"]} → {f["after"]}</td><td>{f["title"]}</td><td class="tiny">{f["id"]}</td></tr>',
+        lambda f: (
+            f'<tr><td>{f["before"]} → {f["after"]}</td><td>{f["title"]}</td><td class="tiny">{f["id"]}</td></tr>'
+        ),
     )
 
     delta = diff["risk_delta"]
@@ -329,17 +335,17 @@ def _diff_html(diff: dict) -> str:
 </style></head>
 <body><div class="wrap">
 <h1>Scan diff</h1>
-<p class="sub">{diff['before']['scan_id']} → {diff['after']['scan_id']}</p>
-<p>Risk score <span class="delta" style="color:{delta_color}">{diff['after']['risk']}</span>
-<span style="color:#6b7480">({delta:+d} from {diff['before']['risk']})</span></p>
+<p class="sub">{diff["before"]["scan_id"]} → {diff["after"]["scan_id"]}</p>
+<p>Risk score <span class="delta" style="color:{delta_color}">{diff["after"]["risk"]}</span>
+<span style="color:#6b7480">({delta:+d} from {diff["before"]["risk"]})</span></p>
 
-<h2>New findings ({len(diff['added'])})</h2>
+<h2>New findings ({len(diff["added"])})</h2>
 <table><tr><th>Severity</th><th>Finding</th><th>ID</th></tr>{added}</table>
 
-<h2>Resolved findings ({len(diff['removed'])})</h2>
+<h2>Resolved findings ({len(diff["removed"])})</h2>
 <table><tr><th>Severity</th><th>Finding</th><th>ID</th></tr>{removed}</table>
 
-<h2>Severity changes ({len(diff['changed'])})</h2>
+<h2>Severity changes ({len(diff["changed"])})</h2>
 <table><tr><th>Change</th><th>Finding</th><th>ID</th></tr>{changed}</table>
 </div></body></html>"""
 

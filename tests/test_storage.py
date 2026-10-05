@@ -19,7 +19,9 @@ from clientlens.core.target import normalize_target
 from clientlens.storage.db import Storage
 
 
-def make_result(scan_id: str = "", *, findings: list[Finding] | None = None, domain: str = "example.com"):
+def make_result(
+    scan_id: str = "", *, findings: list[Finding] | None = None, domain: str = "example.com"
+):
     return ScanResult(
         target=normalize_target(domain),
         scan_id=scan_id,

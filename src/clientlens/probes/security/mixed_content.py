@@ -95,7 +95,9 @@ async def check_mixed_content(ctx: ProbeContext) -> list[Finding]:
                 kind=FindingKind.MISCONFIGURATION,
                 severity=Severity.HIGH,
                 confidence=Confidence.CONFIRMED,
-                evidence=Evidence.urls([f"<{t} {a}=\"{u}\">" for t, a, u in active[:25]], source=html.final_url),
+                evidence=Evidence.urls(
+                    [f'<{t} {a}="{u}">' for t, a, u in active[:25]], source=html.final_url
+                ),
                 reasoning=(
                     "Active mixed content (scripts, iframes, stylesheets, forms) is "
                     "loaded over http:// inside an https page. Browsers block these "
@@ -118,7 +120,9 @@ async def check_mixed_content(ctx: ProbeContext) -> list[Finding]:
                 kind=FindingKind.MISCONFIGURATION,
                 severity=Severity.LOW,
                 confidence=Confidence.CONFIRMED,
-                evidence=Evidence.urls([f"<{t} {a}=\"{u}\">" for t, a, u in passive[:25]], source=html.final_url),
+                evidence=Evidence.urls(
+                    [f'<{t} {a}="{u}">' for t, a, u in passive[:25]], source=html.final_url
+                ),
                 reasoning=(
                     "Passive mixed content (images, media) is downgraded to http://. "
                     "Browsers allow it with a warning, but the content is exposed to "

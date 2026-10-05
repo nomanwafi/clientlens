@@ -50,7 +50,9 @@ async def check_redirect_chain(ctx: ProbeContext) -> list[Finding]:
                 kind=FindingKind.OBSERVATION,
                 severity=Severity.INFO,
                 confidence=Confidence.CONFIRMED,
-                evidence=Evidence.text(f"{resp.url} -> {resp.final_url} ({resp.status})", source=source),
+                evidence=Evidence.text(
+                    f"{resp.url} -> {resp.final_url} ({resp.status})", source=source
+                ),
                 reasoning="The homepage was served without intermediate redirects.",
                 scope=f"Redirect chain of {resp.url}",
                 tags=["redirects"],
@@ -58,11 +60,17 @@ async def check_redirect_chain(ctx: ProbeContext) -> list[Finding]:
         )
         return findings
 
-    chain_text = f"{resp.url}\n" + "\n".join(f"  {hop}" for hop in resp.redirect_chain) + f"\n  -> {resp.final_url} ({resp.status})"
+    chain_text = (
+        f"{resp.url}\n"
+        + "\n".join(f"  {hop}" for hop in resp.redirect_chain)
+        + f"\n  -> {resp.final_url} ({resp.status})"
+    )
 
     # ---- http -> https downgrade anywhere in the chain ---------------------
     downgrades = [
-        hop for hop in resp.redirect_chain if hop.strip().startswith(("301", "302", "303", "307", "308")) and "http://" in hop
+        hop
+        for hop in resp.redirect_chain
+        if hop.strip().startswith(("301", "302", "303", "307", "308")) and "http://" in hop
     ]
     # Also check the initial URL itself.
     if resp.url.startswith("http://") or downgrades:
@@ -74,7 +82,9 @@ async def check_redirect_chain(ctx: ProbeContext) -> list[Finding]:
                 kind=FindingKind.MISCONFIGURATION,
                 severity=Severity.MEDIUM,
                 confidence=Confidence.CONFIRMED,
-                evidence=Evidence.text(chain_text, summary=f"{len(resp.redirect_chain)} hop(s)", source=source),
+                evidence=Evidence.text(
+                    chain_text, summary=f"{len(resp.redirect_chain)} hop(s)", source=source
+                ),
                 reasoning=(
                     "The first request is made over http:// and only afterwards "
                     "redirects to https. That first hop is unprotected: an on-path "

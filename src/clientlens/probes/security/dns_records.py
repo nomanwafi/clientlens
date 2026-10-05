@@ -86,7 +86,7 @@ async def check_dns(ctx: ProbeContext) -> list[Finding]:
                 scope=f"CAA records for {target.apex}",
                 remediation=(
                     f"Publish CAA records restricting issuance to your actual CA, e.g.\n"
-                    f"  {target.apex}.  IN  CAA  0 issue \"letsencrypt.org\""
+                    f'  {target.apex}.  IN  CAA  0 issue "letsencrypt.org"'
                 ),
                 tags=["dns", "caa", "pki"],
             )

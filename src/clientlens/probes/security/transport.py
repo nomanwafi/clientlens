@@ -78,7 +78,9 @@ async def check_http_methods(ctx: ProbeContext) -> list[Finding]:
                 kind=FindingKind.OBSERVATION,
                 severity=Severity.INFO,
                 confidence=Confidence.CONFIRMED,
-                evidence=Evidence.http_response(resp.status_code, dict(resp.headers), source=f"OPTIONS {base}/"),
+                evidence=Evidence.http_response(
+                    resp.status_code, dict(resp.headers), source=f"OPTIONS {base}/"
+                ),
                 reasoning=(
                     "The OPTIONS response carries no Allow/Public header, so the "
                     "server is not disclosing its method surface. This is normal and "
@@ -122,7 +124,9 @@ async def check_http_methods(ctx: ProbeContext) -> list[Finding]:
                     "Return 405 for methods the endpoint does not need, and omit "
                     "them from the Allow header."
                 ),
-                references=["https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods"],
+                references=[
+                    "https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods"
+                ],
                 tags=["transport", "methods", "needs-review"],
             )
         )

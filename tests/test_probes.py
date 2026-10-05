@@ -74,7 +74,10 @@ class TestSecurityHeaders:
         )
         findings = by_id(_run(check_security_headers, ctx))
         assert "security.headers.strict_transport_security_present" in findings
-        assert findings["security.headers.strict_transport_security_present"].kind is FindingKind.STRENGTH
+        assert (
+            findings["security.headers.strict_transport_security_present"].kind
+            is FindingKind.STRENGTH
+        )
 
     def test_ineffective_csp_is_flagged(self):
         from clientlens.probes.security.headers import check_security_headers
@@ -111,9 +114,7 @@ class TestCookies:
     def test_session_cookie_without_flags(self):
         from clientlens.probes.security.cookies import check_cookies
 
-        ctx = make_ctx(
-            headers={"set-cookie": "sessionid=abc123; Path=/; HttpOnly"}
-        )
+        ctx = make_ctx(headers={"set-cookie": "sessionid=abc123; Path=/; HttpOnly"})
         findings = by_id(_run(check_cookies, ctx))
         assert any("insecure" in k for k in findings)
         # HttpOnly is present, so no_httponly must NOT be reported.
@@ -123,9 +124,7 @@ class TestCookies:
         from clientlens.probes.security.cookies import check_cookies
 
         ctx = make_ctx(
-            headers={
-                "set-cookie": "sessionid=abc; Path=/; Secure; HttpOnly; SameSite=Lax"
-            }
+            headers={"set-cookie": "sessionid=abc; Path=/; Secure; HttpOnly; SameSite=Lax"}
         )
         findings = _run(check_cookies, ctx)
         problems = [f for f in findings if f.kind is FindingKind.MISCONFIGURATION]
@@ -347,9 +346,7 @@ class TestTrackingFingerprints:
     def test_no_false_positive_on_empty_input(self):
         from clientlens.probes.shared import fingerprints
 
-        hits = fingerprints.match_trackers(
-            script_srcs=[], inline_scripts=[], cookie_names=[]
-        )
+        hits = fingerprints.match_trackers(script_srcs=[], inline_scripts=[], cookie_names=[])
         assert hits == []
 
     def test_consent_platform_detection(self):

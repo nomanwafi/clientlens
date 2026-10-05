@@ -77,12 +77,12 @@ class FindingKind(str, Enum):
     to accidentally render a heuristic as a verified vulnerability.
     """
 
-    OBSERVATION = "observation"          # neutral fact ("cert expires in 12 days")
+    OBSERVATION = "observation"  # neutral fact ("cert expires in 12 days")
     MISCONFIGURATION = "misconfiguration"  # missing/incorrect control
-    EXPOSURE = "exposure"                # something reachable that shouldn't be
+    EXPOSURE = "exposure"  # something reachable that shouldn't be
     VULNERABILITY_VECTOR = "vulnerability_vector"  # attack surface, not a proven vuln
-    STRENGTH = "strength"                # something done well (positive signal)
-    GAP = "gap"                          # coverage gap ("not tested", "not enabled")
+    STRENGTH = "strength"  # something done well (positive signal)
+    GAP = "gap"  # coverage gap ("not tested", "not enabled")
 
 
 class Category(str, Enum):
@@ -108,7 +108,7 @@ class Presence(str, Enum):
     """Tri-state presence, so 'not detected' is never conflated with 'absent'."""
 
     PRESENT = "present"
-    ABSENT = "absent"          # actively verified to be missing
+    ABSENT = "absent"  # actively verified to be missing
     NOT_DETECTED = "not_detected"  # our checks did not surface it
     NOT_TESTED = "not_tested"
 
@@ -138,7 +138,12 @@ class Evidence:
     @classmethod
     def http_headers(cls, headers: dict[str, str], source: str = "") -> Evidence:
         raw = "\n".join(f"{k}: {v}" for k, v in headers.items())
-        return cls(type=EvidenceType.HTTP_HEADERS, raw=raw, summary=f"{len(headers)} headers", source=source)
+        return cls(
+            type=EvidenceType.HTTP_HEADERS,
+            raw=raw,
+            summary=f"{len(headers)} headers",
+            source=source,
+        )
 
     @classmethod
     def http_response(
@@ -151,12 +156,19 @@ class Evidence:
         raw = f"HTTP {status}\n" + "\n".join(f"{k}: {v}" for k, v in headers.items())
         if body_snippet:
             raw += f"\n\n--- body (truncated) ---\n{body_snippet}"
-        return cls(type=EvidenceType.HTTP_RESPONSE, raw=raw, summary=f"status {status}", source=source)
+        return cls(
+            type=EvidenceType.HTTP_RESPONSE, raw=raw, summary=f"status {status}", source=source
+        )
 
     @classmethod
     def dns_record(cls, name: str, rtype: str, values: list[str]) -> Evidence:
         raw = "\n".join(f"{name} {rtype} {v}" for v in values) or f"(no {rtype} record)"
-        return cls(type=EvidenceType.DNS_RECORD, raw=raw, summary=f"{rtype} x{len(values)}", source=f"{rtype} {name}")
+        return cls(
+            type=EvidenceType.DNS_RECORD,
+            raw=raw,
+            summary=f"{rtype} x{len(values)}",
+            source=f"{rtype} {name}",
+        )
 
     @classmethod
     def tls_certificate(cls, raw: str, summary: str = "") -> Evidence:
@@ -172,7 +184,12 @@ class Evidence:
 
     @classmethod
     def urls(cls, urls: list[str], summary: str = "", source: str = "") -> Evidence:
-        return cls(type=EvidenceType.URL_LIST, raw="\n".join(urls), summary=summary or f"{len(urls)} urls", source=source)
+        return cls(
+            type=EvidenceType.URL_LIST,
+            raw="\n".join(urls),
+            summary=summary or f"{len(urls)} urls",
+            source=source,
+        )
 
     @classmethod
     def none(cls, reason: str = "no evidence captured") -> Evidence:
@@ -211,7 +228,10 @@ class Finding:
         if not self.recorded_at:
             self.recorded_at = _now_iso()
         # Hard guard: vulnerability-shaped claims can never be CONFIRMED.
-        if self.kind is FindingKind.VULNERABILITY_VECTOR and self.confidence is Confidence.CONFIRMED:
+        if (
+            self.kind is FindingKind.VULNERABILITY_VECTOR
+            and self.confidence is Confidence.CONFIRMED
+        ):
             self.confidence = Confidence.LIKELY
 
     @property
