@@ -4,6 +4,39 @@
 
 ---
 
+## v0.3.0 — New Probes Update
+
+**তারিখ:** ২০২৬-১০-০৫
+
+### 🔍 নতুন প্রোব (৫টা যোগ হয়েছে — মোট ৩৮টা)
+
+| প্রোব | কী দেখে | Mode |
+|---|---|---|
+| `security.exposure.api` | Swagger/OpenAPI/GraphQL/docs endpoint খোলা আছে কিনা — SPA-র soft-404 বাদ দেয় | active |
+| `security.subdomain_takeover` | ঝুলন্ত CNAME → GitHub Pages, Heroku, S3, CloudFront, Azure, Shopify ইত্যাদি (১৪টা সাধারণ নাম) | passive |
+| `marketing.content_depth` | শব্দ গণনা, heading outline/skip, text-to-HTML ratio, thin content | passive |
+| `marketing.images` | width/height attr (CLS), lazy loading, WebP/AVIF vs legacy format | passive |
+| `marketing.soft_404` | অস্তিত্বহীন URL-এ সঠিক 404 আসে না soft-404 (SEO সমস্যা) | active |
+
+### 🐛 Bug fix
+
+- **`--include` এখন কাজ করে** — আগে `shared.capture` বাদ পড়ে যেত, তাই fact তৈরি না হয়ে রিপোর্ট ফাঁকা আসত। এখন capture probe সবসময় চলে।
+- **`shared.capture` কে exclude করা যায় না** — fact ছাড়া কোনো প্রোবই কাজ করতে পারে না।
+
+### 📊 Preset আপডেট
+
+| Preset | প্রোব |
+|---|---|
+| `quick` | ১৬ |
+| `standard` | ২৭ |
+| `deep` | ৩৮ |
+
+### 🧪 টেস্ট
+
+- **১৪৯টা টেস্ট** (আগে ছিল ১২৬) — ২৩টা নতুন
+
+---
+
 ## v0.2.0 — Deep Scan Update (বড় আপডেট)
 
 **তারিখ:** ২০২৬-১০-০৫

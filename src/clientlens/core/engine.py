@@ -151,16 +151,25 @@ class ScanEngine:
 
     # ------------------------------------------------------------------ #
     def _select_specs(self):
-        """Apply preset / include / exclude filters to the probe registry."""
+        """Apply preset / include / exclude filters to the probe registry.
+
+        ``shared.capture`` always runs: it produces the facts every other probe
+        consumes, so an ``--include`` that omits it would silently produce an
+        empty report.
+        """
         # Explicit --include overrides everything else.
         include = self.config.include_probes or None
-        exclude = list(self.config.exclude_probes)
+        exclude = [p for p in self.config.exclude_probes if p != CAPTURE_PROBE_ID]
+
+        if include is not None:
+            include = [*include, CAPTURE_PROBE_ID]
 
         if not include:
             if self.config.preset == "quick":
                 exclude.extend(
                     [
                         "security.subdomains",
+                        "security.subdomain_takeover",
                         "security.cors",
                         "security.email_auth",
                         "security.exposure",
@@ -175,6 +184,8 @@ class ScanEngine:
                         "marketing.accessibility",
                         "marketing.forms",
                         "marketing.schema",
+                        "marketing.content_depth",
+                        "marketing.images",
                     ]
                 )
             elif self.config.preset == "deep":
@@ -188,6 +199,7 @@ class ScanEngine:
                         "security.dns.dnssec",
                         "security.dns.www_redirect",
                         "security.headers.csp_deep",
+                        "security.subdomain_takeover",
                         "marketing.third_party",
                         "marketing.pwa",
                         "marketing.accessibility",

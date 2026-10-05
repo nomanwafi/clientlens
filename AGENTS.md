@@ -47,8 +47,8 @@ src/clientlens/
 │   └── target.py        target normalisation
 ├── probes/
 │   ├── shared/          http_client, dns_client, html, fingerprints
-│   ├── security/        18 probes
-│   └── marketing/       14 probes
+│   ├── security/        20 probes
+│   └── marketing/       17 probes
 ├── report/
 │   ├── console.py       Rich terminal renderer
 │   ├── html_export.py   print-ready HTML
@@ -97,9 +97,9 @@ Rules for findings:
 
 | Preset | Probes | Excludes |
 |---|---|---|
-| `quick` | ~15 | transport, DNSSEC, www, CSP deep, accessibility, forms, third-party, PWA, performance, tech_stack, schema, subdomains, cors, email_auth, exposure |
-| `standard` | ~23 | deep-only: transport, DNSSEC, www, CSP deep, accessibility, forms, third-party, PWA |
-| `deep` | 33 | nothing (still respects `--active` for active-mode probes) |
+| `quick` | ~16 | transport, DNSSEC, www, CSP deep, accessibility, forms, third-party, PWA, performance, tech_stack, schema, subdomains, subdomain_takeover, cors, email_auth, exposure, content_depth, images |
+| `standard` | ~27 | deep-only: transport, DNSSEC, www, CSP deep, accessibility, forms, third-party, PWA, subdomain_takeover |
+| `deep` | 38 | nothing (still respects `--active` for active-mode probes) |
 
 Explicit `--include` overrides the preset entirely.
 

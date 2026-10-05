@@ -539,8 +539,10 @@ class TestPresetSelection:
         )
         ids = {s.id for s in ScanEngine(cfg)._select_specs()}
         assert "security.headers" in ids
-        # Prefix semantics: only security.headers* is selected.
-        assert all(i.startswith("security.headers") for i in ids)
+        # The capture probe is always present so facts exist.
+        assert "shared.capture" in ids
+        # Apart from capture, only security.headers* is selected.
+        assert all(i.startswith("security.headers") or i == "shared.capture" for i in ids)
         assert "security.tls" not in ids
 
 
@@ -613,3 +615,291 @@ class TestCsvExport:
         assert len(rows) == 1
         assert rows[0]["id"] == "sec.y"
         assert rows[0]["title"] == "Multi line title"
+
+
+# --------------------------------------------------------------------------- #
+# Content depth
+# --------------------------------------------------------------------------- #
+class TestContentDepth:
+    def test_thin_content_is_flagged(self):
+        from clientlens.probes.marketing.content_depth import check_content_depth
+
+        html = "<html><body><p>Short page.</p></body></html>"
+        findings = by_id(_run(check_content_depth, make_ctx(html=html)))
+        assert "marketing.content.thin" in findings
+        assert findings["marketing.content.thin"].kind is FindingKind.MISCONFIGURATION
+
+    def test_healthy_depth_is_strength(self):
+        from clientlens.probes.marketing.content_depth import check_content_depth
+
+        body = "<p>" + ("word " * 700) + "</p>"
+        findings = by_id(
+            _run(check_content_depth, make_ctx(html=f"<html><body>{body}</body></html>"))
+        )
+        assert "marketing.content.healthy_depth" in findings
+        assert findings["marketing.content.healthy_depth"].kind is FindingKind.STRENGTH
+
+    def test_multiple_h1_is_flagged(self):
+        from clientlens.probes.marketing.content_depth import check_content_depth
+
+        html = (
+            "<html><body>" + ("<h1>t</h1>" * 3) + ("<p>" + "w " * 400 + "</p>") + "</body></html>"
+        )
+        findings = by_id(_run(check_content_depth, make_ctx(html=html)))
+        assert "marketing.content.multiple_h1" in findings
+
+    def test_heading_skip_is_reported(self):
+        from clientlens.probes.marketing.content_depth import check_content_depth
+
+        html = "<html><body><h1>t</h1><h3>skip</h3></body></html>"
+        findings = by_id(_run(check_content_depth, make_ctx(html=html)))
+        assert "marketing.content.heading_skip" in findings
+
+    def test_word_count_is_exact(self):
+        from clientlens.probes.marketing.content_depth import check_content_depth
+
+        html = "<html><body><p>one two three four five</p></body></html>"
+        findings = by_id(_run(check_content_depth, make_ctx(html=html)))
+        f = findings.get("marketing.content.thin")
+        assert f is not None
+        assert "5 words" in f.title
+
+
+# --------------------------------------------------------------------------- #
+# Image hygiene
+# --------------------------------------------------------------------------- #
+class TestImages:
+    def test_no_images_is_observation(self):
+        from clientlens.probes.marketing.images import check_images
+
+        findings = by_id(_run(check_images, make_ctx(html="<html><body></body></html>")))
+        assert "marketing.images.none" in findings
+
+    def test_missing_dimensions_are_flagged(self):
+        from clientlens.probes.marketing.images import check_images
+
+        html = '<html><body><img src="a.png"><img src="b.png" width="10" height="10"></body></html>'
+        findings = by_id(_run(check_images, make_ctx(html=html)))
+        assert "marketing.images.missing_dimensions" in findings
+        assert "1 of 2" in findings["marketing.images.missing_dimensions"].title
+
+    def test_all_dimensions_is_strength(self):
+        from clientlens.probes.marketing.images import check_images
+
+        html = '<html><body><img src="a.png" width="1" height="1"></body></html>'
+        findings = by_id(_run(check_images, make_ctx(html=html)))
+        assert "marketing.images.dimensions_declared" in findings
+        assert findings["marketing.images.dimensions_declared"].kind is FindingKind.STRENGTH
+
+    def test_legacy_formats_observed(self):
+        from clientlens.probes.marketing.images import check_images
+
+        html = '<html><body><img src="a.png" width="1" height="1"><img src="b.jpg" width="1" height="1"><img src="c.png" width="1" height="1"></body></html>'
+        findings = by_id(_run(check_images, make_ctx(html=html)))
+        assert "marketing.images.legacy_formats" in findings
+
+    def test_modern_format_is_strength(self):
+        from clientlens.probes.marketing.images import check_images
+
+        html = '<html><body><img src="a.webp" width="1" height="1"></body></html>'
+        findings = by_id(_run(check_images, make_ctx(html=html)))
+        assert "marketing.images.modern_formats" in findings
+        assert findings["marketing.images.modern_formats"].kind is FindingKind.STRENGTH
+
+    def test_no_lazy_loading_observed(self):
+        from clientlens.probes.marketing.images import check_images
+
+        imgs = "".join(f'<img src="a{i}.png" width="1" height="1">' for i in range(4))
+        findings = by_id(_run(check_images, make_ctx(html=f"<html><body>{imgs}</body></html>")))
+        assert "marketing.images.no_lazy_loading" in findings
+
+
+# --------------------------------------------------------------------------- #
+# Soft 404
+# --------------------------------------------------------------------------- #
+class TestSoft404:
+    def _ctx(self, resp):
+        ctx = make_ctx()
+        ctx.http_client = FakeHttpClient({"__any__": resp})
+        return ctx
+
+    def _client_for(self, resp):
+        class OneShot(FakeHttpClient):
+            async def get(self, url, follow=True):
+                return resp
+
+        return OneShot({})
+
+    def test_real_404_is_strength(self):
+        from clientlens.probes.marketing.soft_404 import check_soft_404
+
+        resp = FetchedResponse(
+            url="x", final_url="x", status=404, headers={}, body="Not Found", elapsed_ms=5
+        )
+        ctx = make_ctx()
+        ctx.http_client = self._client_for(resp)
+        findings = by_id(_run(check_soft_404, ctx))
+        assert "marketing.soft_404.correct" in findings
+        assert findings["marketing.soft_404.correct"].kind is FindingKind.STRENGTH
+
+    def test_soft_404_with_200_is_flagged(self):
+        from clientlens.probes.marketing.soft_404 import check_soft_404
+
+        resp = FetchedResponse(
+            url="x",
+            final_url="x",
+            status=200,
+            headers={"content-type": "text/html"},
+            body="<html><body><h1>404 - page not found</h1></body></html>",
+            elapsed_ms=5,
+        )
+        ctx = make_ctx()
+        ctx.http_client = self._client_for(resp)
+        findings = by_id(_run(check_soft_404, ctx))
+        assert "marketing.soft_404.serving_200" in findings
+        f = findings["marketing.soft_404.serving_200"]
+        assert f.severity is Severity.MEDIUM  # body admits it's an error page
+
+    def test_redirect_instead_of_404_is_flagged(self):
+        from clientlens.probes.marketing.soft_404 import check_soft_404
+
+        resp = FetchedResponse(
+            url="x", final_url="https://example.com/", status=302, headers={}, body="", elapsed_ms=5
+        )
+        ctx = make_ctx()
+        ctx.http_client = self._client_for(resp)
+        findings = by_id(_run(check_soft_404, ctx))
+        assert "marketing.soft_404.redirects" in findings
+
+    def test_request_error_is_a_gap(self):
+        from clientlens.probes.marketing.soft_404 import check_soft_404
+
+        resp = FetchedResponse(
+            url="x",
+            final_url="x",
+            status=0,
+            headers={},
+            body="",
+            elapsed_ms=5,
+            error="ConnectError",
+        )
+        ctx = make_ctx()
+        ctx.http_client = self._client_for(resp)
+        findings = by_id(_run(check_soft_404, ctx))
+        assert "marketing.soft_404.untested" in findings
+        assert findings["marketing.soft_404.untested"].kind is FindingKind.GAP
+
+
+# --------------------------------------------------------------------------- #
+# Subdomain takeover signals
+# --------------------------------------------------------------------------- #
+class TestSubdomainTakeover:
+    def _patch(self, monkeypatch, mapping: dict[str, list[str]]):
+        from clientlens.probes.security import subdomain_takeover
+        from clientlens.probes.shared.dns_client import DnsAnswer
+
+        async def fake_resolve_record(name, rtype):
+            values = mapping.get(name, [])
+            return DnsAnswer(name=name, rtype=rtype, values=values)
+
+        monkeypatch.setattr(subdomain_takeover, "resolve_record", fake_resolve_record)
+
+    def test_dangling_cname_is_reported_as_vector(self, monkeypatch):
+        from clientlens.probes.security.subdomain_takeover import check_subdomain_takeover
+
+        self._patch(monkeypatch, {"blog.example.com": ["dangling.github.io"]})
+        findings = by_id(_run(check_subdomain_takeover, make_ctx()))
+        assert "security.subdomain_takeover.dangling_candidates" in findings
+        f = findings["security.subdomain_takeover.dangling_candidates"]
+        assert f.kind is FindingKind.VULNERABILITY_VECTOR
+        assert "GitHub Pages" in f.evidence.raw
+
+    def test_no_cname_findings_when_nothing_resolves(self, monkeypatch):
+        from clientlens.probes.security.subdomain_takeover import check_subdomain_takeover
+
+        self._patch(monkeypatch, {})
+        findings = _run(check_subdomain_takeover, make_ctx())
+        assert findings == []
+
+    def test_unrelated_cname_is_not_flagged(self, monkeypatch):
+        from clientlens.probes.security.subdomain_takeover import check_subdomain_takeover
+
+        self._patch(monkeypatch, {"blog.example.com": ["origin.example.net"]})
+        findings = _run(check_subdomain_takeover, make_ctx())
+        assert findings == []
+
+
+# --------------------------------------------------------------------------- #
+# API exposure
+# --------------------------------------------------------------------------- #
+class TestApiExposure:
+    def _client(self, responses: dict[str, FetchedResponse]):
+        class Router(FakeHttpClient):
+            async def get(self, url, follow=True):
+                for key, resp in responses.items():
+                    if key in url:
+                        return resp
+                return FetchedResponse(
+                    url=url, final_url=url, status=404, headers={}, body="Not Found", elapsed_ms=5
+                )
+
+        return Router({})
+
+    def test_openapi_document_is_exposure(self):
+        from clientlens.probes.security.exposure_api import check_api_exposure
+
+        spec = FetchedResponse(
+            url="x",
+            final_url="x",
+            status=200,
+            headers={"content-type": "application/json"},
+            body='{"openapi": "3.0.0", "paths": {"/users": {}}}',
+            elapsed_ms=5,
+        )
+        ctx = make_ctx()
+        ctx.http_client = self._client({"/openapi.json": spec})
+        findings = by_id(_run(check_api_exposure, ctx))
+        assert "security.exposure.api.docs_open" in findings
+        assert findings["security.exposure.api.docs_open"].kind is FindingKind.EXPOSURE
+
+    def test_spa_shell_is_not_mistaken_for_docs(self):
+        from clientlens.probes.security.exposure_api import check_api_exposure
+
+        shell = FetchedResponse(
+            url="x",
+            final_url="x",
+            status=200,
+            headers={"content-type": "text/html"},
+            body="<html><body><div id='root'></div></body></html>",
+            elapsed_ms=5,
+        )
+        ctx = make_ctx()
+        ctx.http_client = self._client({"/swagger.json": shell, "/openapi.json": shell})
+        findings = by_id(_run(check_api_exposure, ctx))
+        assert "security.exposure.api.none" in findings
+        assert findings["security.exposure.api.none"].kind is FindingKind.STRENGTH
+
+    def test_nothing_open_is_strength(self):
+        from clientlens.probes.security.exposure_api import check_api_exposure
+
+        ctx = make_ctx()
+        ctx.http_client = self._client({})
+        findings = by_id(_run(check_api_exposure, ctx))
+        assert "security.exposure.api.none" in findings
+
+
+class TestCaptureAlwaysRuns:
+    def test_include_still_runs_capture_probe(self):
+        from clientlens.core.engine import ScanEngine
+
+        cfg = ScanConfig(authorized=True, include_probes=["marketing.content_depth"])
+        ids = {s.id for s in ScanEngine(cfg)._select_specs()}
+        assert "shared.capture" in ids, "capture probe must always run to produce facts"
+        assert "marketing.content_depth" in ids
+
+    def test_exclude_cannot_remove_capture_probe(self):
+        from clientlens.core.engine import ScanEngine
+
+        cfg = ScanConfig(authorized=True, exclude_probes=["shared.capture"])
+        ids = {s.id for s in ScanEngine(cfg)._select_specs()}
+        assert "shared.capture" in ids

@@ -1,11 +1,11 @@
 # ClientLens
 
 ![Python](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-126%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-149%20passed-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 ![Cost](https://img.shields.io/badge/cost-free-00b894)
-![Probes](https://img.shields.io/badge/probes-33-orange)
+![Probes](https://img.shields.io/badge/probes-38-orange)
 
 **Unified client audit engine** — security and digital-marketing reconnaissance
 in one evidence-backed report. Free, local, and deterministic.
@@ -119,7 +119,7 @@ uv run clientlens dashboard
 
 ```bash
 clientlens scan <domain>        # run an audit
-clientlens probes               # list all 33 probes
+clientlens probes               # list all 38 probes
 clientlens history              # list saved scans
 clientlens diff <before> <after>  # compare two scans
 clientlens report <scan.json>   # re-render reports
@@ -133,11 +133,11 @@ Full reference for every flag and option: **[USAGE.md](USAGE.md)**.
 
 ## What it checks
 
-**33 probes** — 25 passive, 8 active. Full detail in
-**[USAGE.md §4](USAGE.md#4-all-33-probes)**. Presets (`--preset quick|standard|deep`)
+**38 probes** — 28 passive, 10 active. Full detail in
+**[USAGE.md §4](USAGE.md#4-all-38-probes)**. Presets (`--preset quick|standard|deep`)
 choose how many run.
 
-### Security (18 probes)
+### Security (20 probes)
 
 | Probe | What it reports |
 |---|---|
@@ -155,12 +155,14 @@ choose how many run.
 | `security.transport.https_enforcement` | Whether `http://` redirects to `https://` or serves content |
 | `security.transport.http_versions` | HTTP/2 negotiation, HTTP/3 (QUIC) availability via alt-svc |
 | `security.subdomains` | Certificate Transparency names, risky staging/admin hosts, wildcard certs |
+| `security.subdomain_takeover` | Dangling CNAMEs into takeover-prone services (GitHub Pages, Heroku, S3, CloudFront, Azure, Shopify ...) — reported as vectors |
 | `security.exposure.paths` *(active)* | `.git`, `.env`, backups, dumps, phpinfo, admin/actuator endpoints |
 | `security.exposure.disclosure` *(active)* | `robots.txt`, `security.txt` (RFC 9116), `sitemap.xml`, `humans.txt` |
+| `security.exposure.api` *(active)* | Swagger / OpenAPI / GraphQL / well-known docs left publicly reachable |
 | `security.cors` *(active)* | Origin reflection vector with/without credentials |
 | `security.redirects.open_vector` *(active)* | Open-redirect parameter reflection |
 
-### Marketing (14 probes)
+### Marketing (17 probes)
 
 | Probe | What it reports |
 |---|---|
@@ -178,6 +180,9 @@ choose how many run.
 | `marketing.forms` | Form count, GET-with-sensitive-fields, cross-origin actions, unlabeled inputs |
 | `marketing.third_party` | Every external origin the page contacts; script-bearing origins (supply chain) |
 | `marketing.pwa` | Web app manifest, service worker hints, favicon / apple-touch-icon, theme colour |
+| `marketing.content_depth` | Word count, heading hierarchy/skips, text-to-HTML ratio, thin content |
+| `marketing.images` | Declared width/height (CLS), lazy loading, WebP/AVIF usage |
+| `marketing.soft_404` *(active)* | Whether nonexistent URLs return a real 404 or a soft 404 |
 
 ### Shared (1 probe)
 
@@ -282,7 +287,7 @@ Seven commands. Full details in **[USAGE.md §3](USAGE.md#3-cli-command-referenc
 clientlens scan <target>        Run an audit
     --i-am-authorized           Required. Confirm permission to scan.
     --active                    Enable active probes (path enum, CORS, open-redirect)
-    --preset <name>             Probe set: quick (~15) | standard (~23) | deep (~33)
+    --preset <name>             Probe set: quick (~16) | standard (~27) | deep (~38)
     --html <path>               Write print-ready HTML report
     --pdf <path>                Write PDF report (requires --extra pdf)
     -o, --output <path>         Write JSON report
@@ -358,8 +363,8 @@ src/clientlens/
 │   └── target.py        Strict target parsing
 ├── probes/
 │   ├── shared/          http_client, dns_client, html, fingerprints
-│   ├── security/        16 security probes
-│   └── marketing/       12 marketing probes
+│   ├── security/        20 security probes
+│   └── marketing/       17 marketing probes
 ├── report/              console, json, html, pdf, csv renderers + intelligence
 ├── storage/             SQLite scan history + diff
 ├── web/                 FastAPI dashboard

@@ -5,7 +5,7 @@ Complete reference for every command, option, probe and output format.
 - [1. Install](#1-install)
 - [2. Your first scan](#2-your-first-scan)
 - [3. CLI command reference](#3-cli-command-reference)
-- [4. All 33 probes](#4-all-33-probes)
+- [4. All 38 probes](#4-all-38-probes)
 - [5. Output formats](#5-output-formats)
 - [6. The web dashboard](#6-the-web-dashboard)
 - [7. Scan history & diffing](#7-scan-history--diffing)
@@ -63,7 +63,7 @@ uv run clientlens version
 uv run clientlens probes
 ```
 
-`clientlens probes` should list **33 probes**.
+`clientlens probes` should list **38 probes**.
 
 > **Note on `uv run`:** if you `pip install -e .` you can drop the `uv run`
 > prefix and call `clientlens` directly. All examples below use `uv run`.
@@ -104,7 +104,7 @@ uv run clientlens scan example.com --i-am-authorized \
 uv run clientlens scan example.com --i-am-authorized --active
 ```
 
-Adds **8 active probes** — sensitive-path enumeration, open-redirect parameter
+Adds **10 active probes** — sensitive-path enumeration, open-redirect parameter
 tests, CORS origin reflection, HTTP method enumeration, www-canonicalisation,
 robots/security.txt inspection, sitemap health, broken-link spot-check.
 
@@ -170,7 +170,7 @@ clientlens scan <target> [OPTIONS]
 |---|---|---|
 | `--i-am-authorized` | — | **Required.** Confirms you are authorised to scan this target. |
 | `--active` | off | Enable active probes (path enumeration, open-redirect tests, CORS, robots/sitemap, broken links). |
-| `--preset <name>` | `standard` | Probe set: `quick` (~15), `standard` (~23), `deep` (all 33). Explicit `--include` overrides the preset. |
+| `--preset <name>` | `standard` | Probe set: `quick` (~16), `standard` (~27), `deep` (all 38). Explicit `--include` overrides the preset. |
 | `-o, --output <path>` | — | Write the JSON report to this path. |
 | `--html <path>` | — | Write a print-ready HTML report. |
 | `--pdf <path>` | — | Write a PDF report (requires `--extra pdf`). |
@@ -340,7 +340,7 @@ uv run clientlens version
 
 ---
 
-## 4. All 33 probes
+## 4. All 38 probes
 
 ### How probes are organised
 
@@ -358,13 +358,13 @@ Presets choose the depth of the pass:
 
 | Preset | Probes | Use when |
 |---|---|---|
-| `quick` | ~15 | First look at a lead or prospect — fast, still evidence-backed |
-| `standard` (default) | ~23 | The everyday client audit |
-| `deep` | 33 | Full coverage including transport, DNSSEC, CSP parsing, accessibility, forms, third-party surface |
+| `quick` | ~16 | First look at a lead or prospect — fast, still evidence-backed |
+| `standard` (default) | ~27 | The everyday client audit |
+| `deep` | 38 | Full coverage including transport, DNSSEC, CSP parsing, accessibility, forms, third-party surface, content depth, images, API surface |
 
 `clientlens probes --preset deep` lists exactly which probes each preset runs.
 
-### Security probes (18)
+### Security probes (20)
 
 | Probe ID | Mode | What it reports |
 |---|---|---|
@@ -382,12 +382,14 @@ Presets choose the depth of the pass:
 | `security.transport.https_enforcement` | passive | Whether `http://` redirects to `https://` (good), serves content (bad), or fails. |
 | `security.transport.http_versions` | passive | Negotiated HTTP version (h2 vs h1), HTTP/3 availability via `Alt-Svc`. |
 | `security.subdomains` | passive | Certificate Transparency names via crt.sh; flags staging/dev/admin/vpn-looking hosts; wildcard certificates. |
+| `security.subdomain_takeover` | passive | CNAME sweep of 14 common names for dangling targets in takeover-prone services (GitHub Pages, Heroku, S3, CloudFront, Azure, Netlify, Vercel, Shopify, ...). Reported as a **vector** — confirming one is out of scope. |
 | `security.exposure.paths` | **active** | 12 high-signal paths: `/.git/HEAD`, `/.git/config`, `/.env`, `/.svn/entries`, `/.DS_Store`, `/backup.zip`, `/dump.sql`, `/wp-config.php.bak`, `/phpinfo.php`, `/server-status`, `/actuator/health`, `/elmah.axd`. Reports only what actually answers, with content-shape validation. |
 | `security.exposure.disclosure` | **active** | `robots.txt`, `security.txt` (RFC 9116, Expires field), `sitemap.xml`, `humans.txt`. |
+| `security.exposure.api` | **active** | 12 API discovery paths (swagger.json, openapi.json, api-docs, swagger-ui, graphql, graphiql, openid-configuration, ...). Response is shape-validated so an SPA's catch-all HTML shell is not mistaken for a live spec. |
 | `security.cors` | **active** | Sends 3 probe `Origin` headers and reports reflected `Access-Control-Allow-Origin`, especially with `Allow-Credentials: true`. Reported as a **vector**, never a confirmed vuln. |
 | `security.redirects.open_vector` | **active** | Tests 8 redirect-parameter names plus URL-valued params. Reports external-host reflection as a **vector**. |
 
-### Marketing probes (14)
+### Marketing probes (17)
 
 | Probe ID | Mode | What it reports |
 |---|---|---|
@@ -405,6 +407,9 @@ Presets choose the depth of the pass:
 | `marketing.forms` | passive | Form count; sensitive fields (password/email) submitted via GET; cross-origin form actions; inputs without labels (conversion + accessibility). |
 | `marketing.third_party` | passive | Every external origin the homepage contacts, with resource types. Script-bearing origins are flagged as supply-chain exposure; iframe origins observed. |
 | `marketing.pwa` | passive | Web app manifest link, service worker registration hint, favicon / apple-touch-icon coverage, theme colour. |
+| `marketing.content_depth` | passive | Visible word count, heading outline (h1-h6 counts + skips), text-to-HTML ratio. Thin content (<300 words) and healthy depth (600+) reported as findings. |
+| `marketing.images` | passive | Per-`<img>` declared width/height (the CLS signal), lazy-loading usage, WebP/AVIF vs legacy format mix. |
+| `marketing.soft_404` | **active** | One request to a random nonexistent path. A real 404 is a strength; a 200 (soft 404) or a redirect is a crawl/indexing problem. |
 
 ### Shared probe (1)
 
@@ -940,8 +945,8 @@ clientlens/
 │   │   │   ├── dns_client.py   DNS + TLS capture
 │   │   │   ├── html.py         BeautifulSoup helpers
 │   │   │   └── fingerprints.py signature matching engine
-│   │   ├── security/           18 security probes
-│   │   └── marketing/          14 marketing probes
+│   │   ├── security/           20 security probes
+│   │   └── marketing/          17 marketing probes
 │   │
 │   ├── report/
 │   │   ├── console.py          Rich terminal renderer
