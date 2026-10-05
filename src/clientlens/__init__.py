@@ -1,6 +1,6 @@
 """ClientLens — Unified client audit engine.
 
-Security + digital marketing reconnaissance in a single, evidence-backed report.
+Security and digital marketing reconnaissance in a single, evidence-backed report.
 Free, local, and deterministic.
 
 Author: Abdullah Al Noman
@@ -8,7 +8,17 @@ Author: Abdullah Al Noman
 
 from .branding import AUTHOR, AUTHOR_DISPLAY, PROJECT, REPORT_FOOTER, TAGLINE, URL
 
-__version__ = "0.2.0"
+try:
+    from importlib.metadata import PackageNotFoundError
+    from importlib.metadata import version as _pkg_version
+
+    try:
+        __version__ = _pkg_version("clientlens")
+    except PackageNotFoundError:
+        __version__ = "0.3.0"
+except Exception:  # noqa: BLE001 — importlib.metadata is stdlib but very old Pythons may lack it
+    __version__ = "0.3.0"
+
 __author__ = AUTHOR
 
 __all__ = [

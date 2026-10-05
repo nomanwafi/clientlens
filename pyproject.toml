@@ -1,12 +1,25 @@
 [project]
 name = "clientlens"
-version = "0.2.0"
+version = "0.3.0"
 description = "Unified client audit engine — security + digital marketing reconnaissance in one evidence-backed report. Free, local, deterministic."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Abdullah Al Noman" }]
-keywords = ["security", "audit", "seo", "recon", "marketing", "pentest", "report"]
+keywords = ["security", "audit", "seo", "recon", "marketing", "pentest", "report", "clientlens"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology Professionals",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
 dependencies = [
     "typer>=0.12.0",
     "rich>=13.7.0",
@@ -40,7 +53,10 @@ dev = [
 clientlens = "clientlens.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/clientlens/clientlens"
+Homepage = "https://github.com/nomanwafi/clientlens"
+Repository = "https://github.com/nomanwafi/clientlens"
+Issues = "https://github.com/nomanwafi/clientlens/issues"
+Changelog = "https://github.com/nomanwafi/clientlens/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["uv_build>=0.12.23,<0.13.0"]

@@ -6,6 +6,7 @@
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 ![Cost](https://img.shields.io/badge/cost-free-00b894)
 ![Probes](https://img.shields.io/badge/probes-38-orange)
+![PyPI](https://img.shields.io/badge/pypi-coming%20soon-yellow)
 
 **Unified client audit engine** — security and digital-marketing reconnaissance
 in one evidence-backed report. Free, local, and deterministic.
@@ -20,22 +21,22 @@ clientlens scan example.com --i-am-authorized --html report.html --pdf report.pd
 
 ## ৬০ সেকেন্ডে শুরু / Quick Start in 60 seconds
 
-**কী লাগবে:** Python 3.12+ এবং [uv](https://docs.astral.sh/uv/)
+**কী লাগবে:** Python 3.12+ এবং [uv](https://docs.astral.sh/uv/) (বা pip)
+
+### pip দিয়ে (PyPI publish হলে — coming soon)
 
 ```bash
-# ১) কোড ডাউনলোড
+pip install clientlens
+clientlens scan example.com --i-am-authorized --html report.html
+```
+
+### uv দিয়ে (development)
+
+```bash
 git clone https://github.com/nomanwafi/clientlens.git
 cd clientlens
-
-# ২) ইনস্টল (একটাই কমান্ড)
 uv sync --all-extras
-
-# ৩) স্ক্যান চালাও (নিজের সাইটের নাম বসাও)
-uv run clientlens scan example.com --i-am-authorized
-
-# ৪) সুন্দর রিপোর্ট ফাইল বানাও
-uv run clientlens scan example.com --i-am-authorized \
-    --html report.html --pdf report.pdf
+uv run clientlens scan example.com --i-am-authorized --html report.html --pdf report.pdf
 ```
 
 **হয়ে গেছে!** `report.html` ফাইলটা ব্রাউজারে খুলো — ক্লায়েন্টকে দেওয়ার মতো রিপোর্ট পাবে।
