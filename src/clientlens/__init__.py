@@ -15,7 +15,7 @@ try:
     try:
         __version__ = _pkg_version("clientlens")
     except PackageNotFoundError:
-        __version__ = "0.3.0"
+__version__ = "0.3.0"  # fallback if not installed
 except Exception:  # noqa: BLE001 — importlib.metadata is stdlib but very old Pythons may lack it
     __version__ = "0.3.0"
 
