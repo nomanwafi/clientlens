@@ -1,6 +1,6 @@
 [project]
 name = "clientlens"
-version = "0.3.1"
+version = "0.3.2"
 description = "Unified client audit engine — security + digital marketing reconnaissance in one evidence-backed report. Free, local, deterministic."
 readme = "README.md"
 requires-python = ">=3.12"
